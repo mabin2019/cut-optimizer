@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plywood Cut Optimizer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Plywood Cut Optimizer</h1>
+  </header>
+
+  <main class="layout">
+    <!-- Left Panel: Inputs -->
+    <aside class="panel-left">
+      <!-- Sheet Settings -->
+      <section class="card">
+        <h2>Sheet Settings</h2>
+        <div class="field-row">
+          <label>
+            Width
+            <input type="number" id="sheetWidth" value="2440" min="1">
+          </label>
+          <label>
+            Height
+            <input type="number" id="sheetHeight" value="1220" min="1">
+          </label>
+        </div>
+        <div class="field-row">
+          <label>
+            Sheets available
+            <input type="number" id="sheetQty" value="5" min="1" max="50">
+          </label>
+          <label>
+            Kerf (blade)
+            <input type="number" id="kerf" value="3" min="0" max="20">
+          </label>
+        </div>
+        <div class="field-row">
+          <label>
+            Unit
+            <select id="unit">
+              <option value="mm" selected>mm</option>
+              <option value="in">inches</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <!-- Furniture List -->
+      <section class="card">
+        <h2>Furniture</h2>
+        <div id="furnitureList"></div>
+        <div class="field-row" style="margin-top: 12px;">
+          <select id="presetSelect">
+            <option value="">Add preset...</option>
+          </select>
+          <button id="addPresetBtn" class="btn">Add Preset</button>
+        </div>
+        <button id="addCustomBtn" class="btn btn-secondary" style="margin-top:8px;width:100%;">+ Add Custom Furniture</button>
+      </section>
+
+      <button id="calculateBtn" class="btn btn-primary">Calculate</button>
+    </aside>
+
+    <!-- Right Panel: Output -->
+    <section class="panel-right">
+      <div id="diagramArea"></div>
+      <section class="card" id="resultsCard" style="display:none;">
+        <h2>Results</h2>
+        <div id="resultsSummary"></div>
+      </section>
+    </section>
+  </main>
+
+  <!-- Custom Furniture Modal -->
+  <div id="customModal" class="modal-overlay" style="display:none;">
+    <div class="modal">
+      <h2>Custom Furniture</h2>
+      <label>
+        Name
+        <input type="text" id="customName" placeholder="e.g. Bookcase">
+      </label>
+      <div id="customCuts"></div>
+      <button id="addCutRow" class="btn btn-secondary" style="margin-top:8px;">+ Add Cut</button>
+      <div class="modal-actions">
+        <button id="customCancel" class="btn btn-secondary">Cancel</button>
+        <button id="customSave" class="btn btn-primary">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="presets.js"></script>
+  <script src="packer.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
