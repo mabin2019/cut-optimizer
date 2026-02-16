@@ -5,6 +5,37 @@ const state = {
   nextId: 1,
 };
 
+// --- Custom presets (saved to localStorage) ---
+const CUSTOM_PRESETS_KEY = "plywoodOptimizer_customPresets";
+
+function loadCustomPresets() {
+  try {
+    return JSON.parse(localStorage.getItem(CUSTOM_PRESETS_KEY)) || {};
+  } catch {
+    return {};
+  }
+}
+
+function saveCustomPresets(presets) {
+  localStorage.setItem(CUSTOM_PRESETS_KEY, JSON.stringify(presets));
+}
+
+function addCustomPreset(name, cuts) {
+  const presets = loadCustomPresets();
+  const key = "custom_" + name.toLowerCase().replace(/[^a-z0-9]+/g, "_") + "_" + Date.now();
+  presets[key] = { name, cuts: cuts.map((c) => ({ ...c })) };
+  saveCustomPresets(presets);
+  populatePresetDropdown();
+  return key;
+}
+
+function deleteCustomPreset(key) {
+  const presets = loadCustomPresets();
+  delete presets[key];
+  saveCustomPresets(presets);
+  populatePresetDropdown();
+}
+
 // Color palette for furniture types
 const COLORS = [
   "#3498db", "#e74c3c", "#2ecc71", "#f39c12",
@@ -16,11 +47,28 @@ const COLORS = [
 function populatePresetDropdown() {
   const sel = document.getElementById("presetSelect");
   sel.innerHTML = '<option value="">Add preset...</option>';
+
+  // Built-in presets
   for (const key in FURNITURE_PRESETS) {
     const opt = document.createElement("option");
     opt.value = key;
     opt.textContent = FURNITURE_PRESETS[key].name;
     sel.appendChild(opt);
+  }
+
+  // Custom saved presets
+  const custom = loadCustomPresets();
+  const customKeys = Object.keys(custom);
+  if (customKeys.length > 0) {
+    const group = document.createElement("optgroup");
+    group.label = "My Saved Presets";
+    customKeys.forEach((key) => {
+      const opt = document.createElement("option");
+      opt.value = key;
+      opt.textContent = custom[key].name;
+      group.appendChild(opt);
+    });
+    sel.appendChild(group);
   }
 }
 
@@ -41,6 +89,8 @@ function renderFurnitureList() {
       .map((c) => `${c.qty}x ${c.name} (${c.width}x${c.height})`)
       .join(", ");
 
+    const isCustom = !item.presetKey;
+    const isCustomPreset = item.presetKey && item.presetKey.startsWith("custom_");
     div.innerHTML = `
       <div class="furniture-header">
         <strong>${item.name}</strong>
@@ -51,6 +101,10 @@ function renderFurnitureList() {
         </div>
       </div>
       <div class="furniture-cuts">${cutsDesc}</div>
+      <div class="furniture-actions">
+        ${isCustom ? `<button class="btn btn-save-preset" data-save="${item.id}">Save as Preset</button>` : ""}
+        ${isCustomPreset ? `<button class="btn btn-delete-preset" data-delete-preset="${item.presetKey}">Remove Preset</button>` : ""}
+      </div>
     `;
     container.appendChild(div);
   });
@@ -72,6 +126,33 @@ function renderFurnitureList() {
       renderFurnitureList();
     });
   });
+
+  // Save as preset handlers
+  container.querySelectorAll("[data-save]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      const id = parseInt(e.target.dataset.save);
+      const item = state.furniture.find((f) => f.id === id);
+      if (!item) return;
+      const key = addCustomPreset(item.name, item.cuts);
+      item.presetKey = key;
+      renderFurnitureList();
+    });
+  });
+
+  // Delete custom preset handlers
+  container.querySelectorAll("[data-delete-preset]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      const key = e.target.dataset.deletePreset;
+      if (confirm("Remove this saved preset? (Furniture already added won't be affected.)")) {
+        deleteCustomPreset(key);
+        // Clear presetKey from any furniture using this preset
+        state.furniture.forEach((f) => {
+          if (f.presetKey === key) f.presetKey = undefined;
+        });
+        renderFurnitureList();
+      }
+    });
+  });
 }
 
 // --- Add preset ---
@@ -80,7 +161,10 @@ function addPreset() {
   const key = sel.value;
   if (!key) return;
 
-  const preset = FURNITURE_PRESETS[key];
+  // Look up in built-in presets first, then custom
+  const preset = FURNITURE_PRESETS[key] || loadCustomPresets()[key];
+  if (!preset) return;
+
   state.furniture.push({
     id: state.nextId++,
     name: preset.name,
