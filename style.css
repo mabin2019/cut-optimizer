@@ -139,6 +139,27 @@ input:focus, select:focus {
   font-size: .8rem;
   color: #666;
 }
+.furniture-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+.btn-save-preset {
+  font-size: .75rem;
+  padding: 3px 8px;
+  color: #2c3e50;
+  border-color: #2c3e50;
+  background: #eaf0f5;
+}
+.btn-save-preset:hover { background: #d5e3ef; }
+.btn-delete-preset {
+  font-size: .75rem;
+  padding: 3px 8px;
+  color: #c0392b;
+  border-color: #c0392b;
+  background: #fde8e8;
+}
+.btn-delete-preset:hover { background: #f8d0d0; }
 
 /* Diagram */
 .sheet-diagram {
